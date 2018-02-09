@@ -10,5 +10,6 @@ public class ClientSimulator {
         a.joinGroupServer();
         b.joinGroupServer();
         a.joinGroupServer();
+        a.leaveGroupServer();
     }
 }

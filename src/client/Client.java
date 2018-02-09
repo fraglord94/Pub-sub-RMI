@@ -10,6 +10,7 @@ import java.rmi.Naming;
 public class Client {
     private int serverAssignedId;
     private PubSubService pubSubService;
+    private UdpSubscriptionReceiver udpSubscriptionReceiver;
 
     public Client(){
         serverAssignedId = -1;
@@ -25,6 +26,10 @@ public class Client {
             try {
                 serverAssignedId = pubSubService.join();
                 System.out.println("Joined Group server. Id is "+serverAssignedId);
+                int clientPort = Integer.parseInt("5000"+Integer.toString(serverAssignedId));
+                udpSubscriptionReceiver = new UdpSubscriptionReceiver(clientPort);
+                udpSubscriptionReceiver.start();
+                pubSubService.ping(serverAssignedId);
             } catch (NullPointerException e) {
                 System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
                 serverAssignedId = -1;

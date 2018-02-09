@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 public interface PubSubService extends Remote{
     public int join() throws RemoteException;
     public void leave(int id) throws RemoteException;
+    public void ping(int clientId) throws RemoteException;
     public int publish() throws RemoteException;
     public int subscribe() throws RemoteException;
 }
