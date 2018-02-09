@@ -8,13 +8,46 @@ import java.rmi.Naming;
  * Created by balan016 on 2/8/18.
  */
 public class Client {
-    public static void main (String[] args){
+    private int serverAssignedId;
+    private PubSubService pubSubService;
+
+    public Client(){
+        serverAssignedId = -1;
         try {
-            PubSubService pubSubService = (PubSubService) Naming.lookup("//"+args[0]+"/PubSubService");
-            int retval = pubSubService.publish();
-            System.out.println("Returned "+retval);
-        } catch (Exception e){
+            pubSubService = (PubSubService) Naming.lookup("//localhost/PubSubService");
+        } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void joinGroupServer(){
+        if(serverAssignedId==-1){
+            try {
+                serverAssignedId = pubSubService.join();
+                System.out.println("Joined Group server. Id is "+serverAssignedId);
+            } catch (NullPointerException e) {
+                System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
+                serverAssignedId = -1;
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("Client is already connected to group server. Id is "+serverAssignedId);
+        }
+    }
+
+    public void leaveGroupServer(){
+        if(serverAssignedId==-1){
+            System.out.println("ERROR: No connection was previously established");
+        }
+        else{
+            try {
+                pubSubService.leave(serverAssignedId);
+                System.out.println("Client has successfully disconnected");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
