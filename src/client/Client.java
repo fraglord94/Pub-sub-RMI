@@ -3,6 +3,7 @@ package client;
 import remoteobj.PubSubService;
 
 import java.rmi.Naming;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by balan016 on 2/8/18.
@@ -29,6 +30,8 @@ public class Client {
                 int clientPort = Integer.parseInt("5000"+Integer.toString(serverAssignedId));
                 udpSubscriptionReceiver = new UdpSubscriptionReceiver(clientPort);
                 udpSubscriptionReceiver.start();
+                TimeUnit.SECONDS.sleep(3);
+                System.out.println("Client listening on port "+clientPort);
                 pubSubService.ping(serverAssignedId);
             } catch (NullPointerException e) {
                 System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");

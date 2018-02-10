@@ -45,7 +45,9 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         try {
             String message = "Hello dear client";
             datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPort);
+            System.out.println("Sending packet to "+clientId);
             datagramSocket.send(datagramPackets[clientId]);
+            System.out.println("Packet sent to "+clientId);
         } catch (UnknownHostException e) {
             System.out.println("ERROR: Host name not valid");
         } catch (Exception e) {
