@@ -7,8 +7,7 @@ public class WorkerThread implements Runnable{
         this.id = id;
     }
     public void run() {
-        //TODO: Read from queue and send the packets
-        DatagramPacket packet = PubSubServiceImpl.sendQueue.poll();
+       DatagramPacket packet = PubSubServiceImpl.sendQueue.poll();
         if(packet != null){
             System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
             try{
