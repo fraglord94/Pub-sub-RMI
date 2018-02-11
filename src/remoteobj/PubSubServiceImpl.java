@@ -52,7 +52,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public void ping(int clientId) throws RemoteException{
         System.out.println("Ping request from "+clientId);
-        int clientPort = 5000 + clientId;
+        int clientPort = 50000 + clientId;
         try {
             String message = "Hello dear client";
             datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPort);
@@ -71,9 +71,11 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         List<Integer> clients = map.get(fields[0]);
         try{
             for(int client : clients){
-                int clientPort = 5000 + client;
+                int clientPort = 50000 + client;
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPort);
+                System.out.println("Added packet "+ packet.toString() +" to queue");
                 sendQueue.offer(packet);
+                send();
             }
         }
         catch (Exception e){
@@ -90,7 +92,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         map.get(category).add(clientId);
         return 0;
     }
-    public int send(String article, int clientId) throws RemoteException{
+    public int send() throws RemoteException{
         ExecutorService executor = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 10; i++) {
             Runnable worker = new WorkerThread(i);

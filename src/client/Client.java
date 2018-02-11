@@ -32,8 +32,10 @@ public class Client {
                 udpSubscriptionReceiver.start();
                 TimeUnit.SECONDS.sleep(3);
                 System.out.println("Client listening on port "+clientPort);
-                pubSubService.ping(serverAssignedId);
-                pubSubService.send("Hi", 1);
+                //pubSubService.ping(serverAssignedId);
+                pubSubService.subscribe("Science", serverAssignedId);
+                pubSubService.publish("Science;Someone;UMN;contents");
+
             } catch (NullPointerException e) {
                 System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
                 serverAssignedId = -1;
