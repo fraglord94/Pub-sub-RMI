@@ -1,15 +1,10 @@
 package remoteobj;
 
-import remoteobj.PubSubService;
-import sun.reflect.annotation.ExceptionProxy;
-
-import java.io.IOException;
 import java.net.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,12 +16,13 @@ import java.util.concurrent.Executors;
  * Created by balan016 on 2/8/18.
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
-    private int MAXCLIENT = 20;
+    private int MAXCLIENT = 1;
 
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
-    private static ConcurrentHashMap<String,List<Integer>> map = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer,Integer> clientPortMap= new ConcurrentHashMap<>(); //TODO: also include IP in the map
+    private static ConcurrentHashMap<String,List<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
     public static ConcurrentLinkedQueue<DatagramPacket> sendQueue = new ConcurrentLinkedQueue<>();
 
     public PubSubServiceImpl() throws RemoteException {
@@ -41,22 +37,29 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public int join() throws RemoteException {
-        System.out.println(availableIdQueue.peek());
-        return availableIdQueue.poll();
+    public int join(InetAddress ip, int port) throws RemoteException {
+        int clientId = -1; //Java local variables are thread safe
+        try {
+            clientId = availableIdQueue.poll();
+        } catch (NullPointerException e) {
+            return -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        clientPortMap.put(clientId,port);
+        return clientId;
     }
 
-    public void leave(int id) throws RemoteException{
-        availableIdQueue.offer(id);
+    public void leave(InetAddress ip, int port) throws RemoteException{
+        availableIdQueue.offer(port); //TODO: this interface is completely wrong. It deletes based on id - not port
     }
 
     public void ping(int clientId) throws RemoteException{
         System.out.println("Ping request from "+clientId);
-        int clientPort = 50000 + clientId;
         try {
             String message = "Hello dear client";
-            datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPort);
-            System.out.println("Sending packet to "+clientId);
+            datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPortMap.get(clientId));
+            System.out.println("Sending packet to "+clientPortMap.get(clientId));
             datagramSocket.send(datagramPackets[clientId]);
             System.out.println("Packet sent to "+clientId);
         } catch (UnknownHostException e) {
@@ -68,11 +71,10 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public int publish(String article) throws RemoteException {
         String[] fields = article.trim().split(";");
-        List<Integer> clients = map.get(fields[0]);
+        List<Integer> clients = tagSubscribersMap.get(fields[0]);
         try{
             for(int client : clients){
-                int clientPort = 50000 + client;
-                DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPort);
+                DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPortMap.get(client));
                 System.out.println("Added packet "+ packet.toString() +" to queue");
                 sendQueue.offer(packet);
                 send();
@@ -86,10 +88,10 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public int subscribe(String category, int clientId) throws RemoteException {
         System.out.println("Subscribe called");
-        if(!map.containsKey(category)){
-            map.put(category,new ArrayList<>());
+        if(!tagSubscribersMap.containsKey(category)){
+            tagSubscribersMap.put(category,new ArrayList<>());
         }
-        map.get(category).add(clientId);
+        tagSubscribersMap.get(category).add(clientId);
         return 0;
     }
     public int send() throws RemoteException{

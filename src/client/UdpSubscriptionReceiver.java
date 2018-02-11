@@ -3,35 +3,47 @@ package client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by balan016 on 2/9/18.
  */
 public class UdpSubscriptionReceiver extends Thread {
-    private int clientSocket;
     private byte[] buf = new byte[1024];
-    private boolean listening;
+    private DatagramSocket datagramSocket;
+    private DatagramPacket datagramPacket;
+    private boolean running;
 
-    UdpSubscriptionReceiver(int socket){
-        clientSocket = socket;
-        listening = false;
+    UdpSubscriptionReceiver(Client client){
+        try {
+            System.out.println("Setting up port for client to listen...\n");
+            datagramSocket = new DatagramSocket();
+            client.setUdpListenerPort(datagramSocket.getLocalPort());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        datagramPacket = new DatagramPacket(buf, 1024);
+        running = false;
     }
 
-    public boolean isListening() {
-        return listening;
+    public void closeSocket() {
+        running = false;
+        datagramSocket.close();
     }
 
     public void run(){
+        running = true;
         try {
-            System.out.println("Setting up port for client to listen...\n");
-            DatagramSocket datagramSocket = new DatagramSocket(clientSocket);
-            DatagramPacket datagramPacket = new DatagramPacket(buf, 1024);
-            datagramSocket.receive(datagramPacket);
-            System.out.println("UDP RECEIVE: "+new String(datagramPacket.getData(),0,datagramPacket.getLength()));
-            datagramSocket.close();
+            while(running == true) {
+                datagramSocket.receive(datagramPacket);
+                System.out.println("UDP RECEIVE: "+new String(datagramPacket.getData(),0,datagramPacket.getLength()));
+                //TODO: Extract contents and write to a file maybe
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            if(running != false) {
+                e.printStackTrace();
+            }
         }
     }
 }

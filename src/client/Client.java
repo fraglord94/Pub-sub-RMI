@@ -2,8 +2,8 @@ package client;
 
 import remoteobj.PubSubService;
 
+import java.net.InetAddress;
 import java.rmi.Naming;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by balan016 on 2/8/18.
@@ -12,9 +12,11 @@ public class Client {
     private int serverAssignedId;
     private PubSubService pubSubService;
     private UdpSubscriptionReceiver udpSubscriptionReceiver;
+    private int udpListenerPort;
 
     public Client(){
         serverAssignedId = -1;
+        udpListenerPort = -1;
         try {
             pubSubService = (PubSubService) Naming.lookup("//localhost/PubSubService");
         } catch (Exception e) {
@@ -22,19 +24,27 @@ public class Client {
         }
     }
 
+    public void setUdpListenerPort(int port) {
+        udpListenerPort = port;
+    }
+
     public void joinGroupServer(){
         if(serverAssignedId==-1){
             try {
-                serverAssignedId = pubSubService.join();
-                System.out.println("Joined Group server. Id is "+serverAssignedId);
-                int clientPort = Integer.parseInt("5000"+Integer.toString(serverAssignedId));
-                udpSubscriptionReceiver = new UdpSubscriptionReceiver(clientPort);
+                udpSubscriptionReceiver = new UdpSubscriptionReceiver(this);
                 udpSubscriptionReceiver.start();
-                TimeUnit.SECONDS.sleep(3);
-                System.out.println("Client listening on port "+clientPort);
-                //pubSubService.ping(serverAssignedId);
-                pubSubService.subscribe("Science", serverAssignedId);
-                pubSubService.publish("Science;Someone;UMN;contents");
+                serverAssignedId = pubSubService.join(InetAddress.getLocalHost(), udpListenerPort);
+                if(serverAssignedId != -1){
+                    System.out.println("Joined Group server. Id is "+serverAssignedId);
+                    System.out.println("Client listening on port "+udpListenerPort);
+                    //pubSubService.ping(serverAssignedId);
+                    pubSubService.subscribe("Science", serverAssignedId);
+                    pubSubService.publish("Science;Someone;UMN;contents");
+                }
+                else {
+                    System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
+                    udpSubscriptionReceiver.closeSocket();
+                }
 
             } catch (NullPointerException e) {
                 System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
@@ -54,7 +64,8 @@ public class Client {
         }
         else{
             try {
-                pubSubService.leave(serverAssignedId);
+                udpSubscriptionReceiver.closeSocket();
+                pubSubService.leave(InetAddress.getLocalHost(),serverAssignedId); //TODO: fix this based on interface change
                 System.out.println("Client has successfully disconnected");
             } catch (Exception e) {
                 e.printStackTrace();

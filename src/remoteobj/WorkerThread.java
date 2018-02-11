@@ -13,7 +13,9 @@ public class WorkerThread implements Runnable{
             System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
             try{
                 DatagramSocket socket = new DatagramSocket();
-                socket.send(packet);
+                for(int i=0;i<5;i++){
+                    socket.send(packet);
+                }
             }
             catch (Exception e){
                 System.out.println(e.getMessage());
