@@ -7,17 +7,27 @@ import java.io.IOException;
 import java.net.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by balan016 on 2/8/18.
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
-    private int MAXCLIENT = 10;
+    private int MAXCLIENT = 20;
+
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
+    private static ConcurrentHashMap<String,List<Integer>> map = new ConcurrentHashMap<>();
+    public static ConcurrentLinkedQueue<Integer> sendQueue = new ConcurrentLinkedQueue<>();
 
     public PubSubServiceImpl() throws RemoteException {
         super();
@@ -32,6 +42,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     }
 
     public int join() throws RemoteException {
+        System.out.println(availableIdQueue.peek());
         return availableIdQueue.poll();
     }
 
@@ -55,12 +66,35 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public int publish() throws RemoteException {
+    public int publish(String article) throws RemoteException {
+        String[] fields = article.trim().split(";");
+        List<Integer> clients = map.get(fields[0]);
+        for(int client : clients){
+            if(send(article,client) == 0){
+                System.out.println("Message sent to client " + client);
+            }
+        }
         return 0;
     }
 
-    public int subscribe() throws RemoteException {
+    public int subscribe(String category, int clientId) throws RemoteException {
         System.out.println("Subscribe called");
+        if(!map.containsKey(category)){
+            map.put(category,new ArrayList<>());
+        }
+        map.get(category).add(clientId);
+        return 0;
+    }
+    public int send(String article, int clientId) throws RemoteException{
+        ExecutorService executor = Executors.newFixedThreadPool(50);
+        for (int i = 0; i < 10; i++) {
+            Runnable worker = new WorkerThread(i);
+            executor.execute(worker);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+        System.out.println("Finished all threads");
         return 0;
     }
 }

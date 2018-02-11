@@ -10,6 +10,7 @@ public interface PubSubService extends Remote{
     public int join() throws RemoteException;
     public void leave(int id) throws RemoteException;
     public void ping(int clientId) throws RemoteException;
-    public int publish() throws RemoteException;
-    public int subscribe() throws RemoteException;
+    public int publish(String article) throws RemoteException;
+    public int subscribe(String category, int clientId) throws RemoteException;
+    public int send(String article, int clientId) throws RemoteException;
 }

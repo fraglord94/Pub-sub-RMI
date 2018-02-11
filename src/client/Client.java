@@ -33,6 +33,7 @@ public class Client {
                 TimeUnit.SECONDS.sleep(3);
                 System.out.println("Client listening on port "+clientPort);
                 pubSubService.ping(serverAssignedId);
+                pubSubService.send("Hi", 1);
             } catch (NullPointerException e) {
                 System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
                 serverAssignedId = -1;

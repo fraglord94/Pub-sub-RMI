@@ -8,6 +8,7 @@ public class ClientSimulator {
         Client a = new Client();
         Client b = new Client();
         a.joinGroupServer();
+
         b.joinGroupServer();
         a.joinGroupServer();
 //        a.leaveGroupServer();
