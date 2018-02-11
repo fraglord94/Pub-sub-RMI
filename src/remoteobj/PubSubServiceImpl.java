@@ -27,7 +27,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
     private static ConcurrentHashMap<String,List<Integer>> map = new ConcurrentHashMap<>();
-    public static ConcurrentLinkedQueue<Integer> sendQueue = new ConcurrentLinkedQueue<>();
+    public static ConcurrentLinkedQueue<DatagramPacket> sendQueue = new ConcurrentLinkedQueue<>();
 
     public PubSubServiceImpl() throws RemoteException {
         super();
@@ -52,7 +52,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public void ping(int clientId) throws RemoteException{
         System.out.println("Ping request from "+clientId);
-        int clientPort = Integer.parseInt("5000"+Integer.toString(clientId));
+        int clientPort = 5000 + clientId;
         try {
             String message = "Hello dear client";
             datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPort);
@@ -69,10 +69,15 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     public int publish(String article) throws RemoteException {
         String[] fields = article.trim().split(";");
         List<Integer> clients = map.get(fields[0]);
-        for(int client : clients){
-            if(send(article,client) == 0){
-                System.out.println("Message sent to client " + client);
+        try{
+            for(int client : clients){
+                int clientPort = 5000 + client;
+                DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPort);
+                sendQueue.offer(packet);
             }
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
         }
         return 0;
     }
