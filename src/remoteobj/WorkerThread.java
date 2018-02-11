@@ -1,5 +1,8 @@
 package remoteobj;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+
 public class WorkerThread implements Runnable{
     public int id;
     public WorkerThread(int id){
@@ -7,8 +10,14 @@ public class WorkerThread implements Runnable{
     }
     public void run() {
         //TODO: Read from queue and send the packets
-        PubSubServiceImpl.sendQueue.poll();
-        System.out.println("Hello from thread " + id);
+        DatagramPacket packet = PubSubServiceImpl.sendQueue.poll();
+        try{
+            DatagramSocket socket = new DatagramSocket();
+            socket.send(packet);
+        }
+       catch (Exception e){
+           System.out.println(e.getMessage());
+       }
 
     }
 

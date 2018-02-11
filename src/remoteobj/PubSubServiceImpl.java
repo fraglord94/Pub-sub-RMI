@@ -26,7 +26,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
-    private static ConcurrentHashMap<String,List<Integer>> map = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,List<Integer>> topicToClients = new ConcurrentHashMap<>();
     public static ConcurrentLinkedQueue<DatagramPacket> sendQueue = new ConcurrentLinkedQueue<>();
 
     public PubSubServiceImpl() throws RemoteException {
@@ -41,18 +41,18 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public int join() throws RemoteException {
+    public int join(String IP, int port) throws RemoteException {
         System.out.println(availableIdQueue.peek());
         return availableIdQueue.poll();
     }
 
-    public void leave(int id) throws RemoteException{
-        availableIdQueue.offer(id);
+    public void leave(String IP, int port) throws RemoteException{
+        //availableIdQueue.offer();
     }
 
     public void ping(int clientId) throws RemoteException{
         System.out.println("Ping request from "+clientId);
-        int clientPort = 5000 + clientId;
+        int clientPort = 50000 + clientId;
         try {
             String message = "Hello dear client";
             datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), InetAddress.getByName("127.0.0.1"), clientPort);
@@ -66,14 +66,15 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public int publish(String article) throws RemoteException {
+    public int publish(String article, String IP, int port) throws RemoteException {
         String[] fields = article.trim().split(";");
-        List<Integer> clients = map.get(fields[0]);
+        List<Integer> clients = topicToClients.get(fields[0]);
         try{
             for(int client : clients){
-                int clientPort = 5000 + client;
+                int clientPort = 50000 + client;
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPort);
                 sendQueue.offer(packet);
+                send();
             }
         }
         catch (Exception e){
@@ -82,15 +83,20 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         return 0;
     }
 
-    public int subscribe(String category, int clientId) throws RemoteException {
+    public int subscribe(String IP, int port, String article) throws RemoteException {
         System.out.println("Subscribe called");
-        if(!map.containsKey(category)){
-            map.put(category,new ArrayList<>());
+        if(!topicToClients.containsKey(article)){
+            topicToClients.put(article,new ArrayList<>());
         }
-        map.get(category).add(clientId);
+        //topicToClients.get(article).add(clientId);
         return 0;
     }
-    public int send(String article, int clientId) throws RemoteException{
+
+    public int unsubscribe(String IP, int port, String article){
+        return 0;
+    }
+
+    public int send() throws RemoteException{
         ExecutorService executor = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 10; i++) {
             Runnable worker = new WorkerThread(i);
