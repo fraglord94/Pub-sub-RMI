@@ -10,7 +10,7 @@ import java.rmi.Naming;
 public class GroupServer {
     public static void main(String[] args){
         try {
-            System.setProperty("java.rmi.server.hostname","10.0.0.84");
+            //System.setProperty("java.rmi.server.hostname","10.0.0.84");
             Naming.rebind("PubSubService",new PubSubServiceImpl());
             System.out.println("Remote Object bound and ready for use");
         } catch (Exception e){
