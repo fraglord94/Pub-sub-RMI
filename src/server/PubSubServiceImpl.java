@@ -1,4 +1,6 @@
-package remoteobj;
+package server;
+
+import remoteobj.PubSubService;
 
 import java.net.*;
 import java.rmi.RemoteException;

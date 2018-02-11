@@ -1,4 +1,4 @@
-package remoteobj;
+package server;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 public class WorkerThread implements Runnable{

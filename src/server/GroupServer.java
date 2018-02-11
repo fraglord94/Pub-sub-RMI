@@ -1,7 +1,5 @@
 package server;
 
-import remoteobj.PubSubServiceImpl;
-
 import java.rmi.Naming;
 
 /**
