@@ -65,7 +65,7 @@ public class Client {
         else{
             try {
                 udpSubscriptionReceiver.closeSocket();
-                pubSubService.leave(InetAddress.getLocalHost(),serverAssignedId); //TODO: fix this based on interface change
+                pubSubService.leave(InetAddress.getLocalHost(), udpListenerPort);
                 System.out.println("Client has successfully disconnected");
             } catch (Exception e) {
                 e.printStackTrace();
