@@ -18,17 +18,19 @@ import java.util.concurrent.Executors;
  * Created by balan016 on 2/8/18.
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
-    private int MAXCLIENT = 1;
+    private int MAXCLIENT = 10;
 
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
-    private ConcurrentHashMap<Integer,Integer> clientPortMap= new ConcurrentHashMap<>(); //TODO: also include IP in the map
+    private static ConcurrentHashMap<Integer,Integer> clientPortMap= new ConcurrentHashMap<>(); //TODO: also include IP in the map
     private static ConcurrentHashMap<String,List<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
-    public static ConcurrentLinkedQueue<DatagramPacket> sendQueue = new ConcurrentLinkedQueue<>();
+    public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
 
     public PubSubServiceImpl() throws RemoteException {
         super();
+        SenderThreadExecutorService senderThreadExecutorService = new SenderThreadExecutorService();
+        senderThreadExecutorService.start();
         for(int i=0;i<MAXCLIENT;i++){
             availableIdQueue.offer(i);
         }
@@ -79,7 +81,6 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), InetAddress.getByName("127.0.0.1"), clientPortMap.get(client));
                 System.out.println("Added packet "+ packet.toString() +" to queue");
                 sendQueue.offer(packet);
-                send();
             }
         }
         catch (Exception e){
@@ -96,16 +97,16 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         tagSubscribersMap.get(category).add(clientId);
         return 0;
     }
-    public int send() throws RemoteException{
+   /* public int send() throws RemoteException{
         ExecutorService executor = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 10; i++) {
             Runnable worker = new WorkerThread(i);
             executor.execute(worker);
         }
-        executor.shutdown();
+        /*executor.shutdown();
         while (!executor.isTerminated()) {
         }
         System.out.println("Finished all threads");
         return 0;
-    }
+    }*/
 }
