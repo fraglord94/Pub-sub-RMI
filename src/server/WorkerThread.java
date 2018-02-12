@@ -3,25 +3,24 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 public class WorkerThread implements Runnable{
     public int id;
+    private DatagramSocket socket;
     public WorkerThread(int id){
         this.id = id;
     }
     public void run() {
-       DatagramPacket packet = PubSubServiceImpl.sendQueue.poll();
-        if(packet != null){
-            System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
-            try{
-                DatagramSocket socket = new DatagramSocket();
+        DatagramPacket packet = null;
+        try {
+            socket = new DatagramSocket();
+            while(true){
+                packet = PubSubServiceImpl.sendQueue.take();
+                System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
                 for(int i=0;i<5;i++){
                     socket.send(packet);
                 }
             }
-            catch (Exception e){
-                System.out.println(e.getMessage());
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-
     }
 
 }

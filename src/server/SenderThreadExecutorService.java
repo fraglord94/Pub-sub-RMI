@@ -11,6 +11,5 @@ public class SenderThreadExecutorService extends Thread{
             Runnable worker = new WorkerThread(i);
             executor.execute(worker);
         }
-        System.out.println("Finished all threads");
     }
 }
