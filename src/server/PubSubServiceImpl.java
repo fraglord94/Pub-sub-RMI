@@ -101,23 +101,46 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         int clientId = findClientId(ip, port);
         String fields[] = article.trim().split(";");
         for(int i = 0; i < fields.length; i++){
-            if(fields[i].trim() != "" && i == 0) {
+            if(fields[i].trim().length() != 0 && i == 0) {
                 if(!tagSubscribersMap.containsKey(fields[0])){
                     tagSubscribersMap.put(fields[0],new HashSet<>());
                 }
                 tagSubscribersMap.get(fields[0]).add(clientId);
             }
-            if(fields[i].trim() != "" && i == 1) {
+            if(fields[i].trim().length() != 0 && i == 1) {
                 if(!personSubscribersMap.containsKey(fields[1])){
                     personSubscribersMap.put(fields[1],new HashSet<>());
                 }
                 personSubscribersMap.get(fields[1]).add(clientId);
             }
-            if(fields[i].trim() != "" && i == 2) {
+            if(fields[i].trim().length() != 0 && i == 2) {
                 if(!placeSubscriberMap.containsKey(fields[2])){
                     placeSubscriberMap.put(fields[2],new HashSet<>());
                 }
                 placeSubscriberMap.get(fields[2]).add(clientId);
+            }
+        }
+        return 0;
+    }
+
+    public int unsubscribe(String article, InetAddress ip, int port){
+        int clientId = findClientId(ip, port);
+        String fields[] = article.trim().split(";");
+        for(int i = 0; i < fields.length; i++){
+            if(fields[i].trim().length() != 0 && i == 0) {
+                if(tagSubscribersMap.containsKey(fields[0])){
+                    tagSubscribersMap.get(fields[0]).remove(clientId);
+                }
+            }
+            if(fields[i].trim().length() != 0 && i == 1) {
+                if(personSubscribersMap.containsKey(fields[1])){
+                    personSubscribersMap.get(fields[1]).remove(clientId);
+                }
+            }
+            if(fields[i].trim().length() != 0 && i == 2) {
+                if(placeSubscriberMap.containsKey(fields[2])){
+                    placeSubscriberMap.get(fields[2]).remove(clientId);
+                }
             }
         }
         return 0;

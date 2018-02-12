@@ -10,6 +10,9 @@ public class ClientSimulator {
         a.joinGroupServer();
         a.subscribe(";Someone;;");
         a.publish("Science;Someone;UMN;contents");
+        a.unsubscribe(";Someone;;");
+        b.joinGroupServer();
+        b.publish("Science;Someone;UMN;contents");
         //a.leaveGroupServer();
         //b.joinGroupServer();
         //a.joinGroupServer();
