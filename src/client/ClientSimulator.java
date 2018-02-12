@@ -8,7 +8,9 @@ public class ClientSimulator {
         Client a = new Client();
         Client b = new Client();
         a.joinGroupServer();
-        a.leaveGroupServer();
+        a.subscribe(";Someone;;");
+        a.publish("Science;Someone;UMN;contents");
+        //a.leaveGroupServer();
         //b.joinGroupServer();
         //a.joinGroupServer();
 //        a.leaveGroupServer();

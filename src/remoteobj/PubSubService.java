@@ -10,8 +10,8 @@ import java.rmi.RemoteException;
 public interface PubSubService extends Remote{
     public int join(InetAddress ip, int port) throws RemoteException;
     public void leave(InetAddress ip, int port) throws RemoteException;
-    public void ping(int clientId) throws RemoteException;
-    public int publish(String article) throws RemoteException;
-    public int subscribe(String category, int clientId) throws RemoteException;
-    //public int send() throws RemoteException;
+    public void ping(int clientId) throws RemoteException; //TODO: how will ping return success - UDP?
+    public void publish(String article, InetAddress ip, int port) throws RemoteException;
+    public int subscribe(String category, InetAddress ip, int port) throws RemoteException;
+    //TODO: unsubscribe()
 }

@@ -14,9 +14,7 @@ public class WorkerThread implements Runnable{
             while(true){
                 packet = PubSubServiceImpl.sendQueue.take();
                 System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
-                for(int i=0;i<5;i++){
-                    socket.send(packet);
-                }
+                socket.send(packet);
             }
         } catch (Exception e) {
             e.printStackTrace();

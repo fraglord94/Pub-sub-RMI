@@ -54,12 +54,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     }
 
     public void leave(InetAddress ip, int port) throws RemoteException{
-        int leavingClientId = -1;
-        for(Map.Entry<Integer,Pair<InetAddress,Integer>> row : clientPortMap.entrySet()) {
-            if(row.getValue().getKey().equals(ip) && row.getValue().getValue().equals(port)) {
-                leavingClientId = row.getKey();
-            }
-        }
+        int leavingClientId = findClientId(ip,port);
         if(leavingClientId!=-1){
             availableIdQueue.offer(leavingClientId);
         }
@@ -80,7 +75,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public int publish(String article) throws RemoteException {
+    public void publish(String article, InetAddress ip, int port) throws RemoteException {
         String[] fields = article.trim().split(";");
         //TODO: Make set
         Set<Integer> clients = new HashSet<>();
@@ -100,10 +95,10 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         catch (Exception e){
             System.out.println(e.getMessage());
         }
-        return 0;
     }
 
-    public int subscribe(String article, int clientId) throws RemoteException {
+    public int subscribe(String article, InetAddress ip, int port) throws RemoteException {
+        int clientId = findClientId(ip, port);
         String fields[] = article.trim().split(";");
         for(int i = 0; i < fields.length; i++){
             if(fields[i].trim() != "" && i == 0) {
@@ -126,5 +121,15 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
             }
         }
         return 0;
+    }
+
+    private int findClientId(InetAddress ip, int port) {
+        int clientId = -1;
+        for(Map.Entry<Integer,Pair<InetAddress,Integer>> row : clientPortMap.entrySet()) {
+            if(row.getValue().getKey().equals(ip) && row.getValue().getValue().equals(port)) {
+                clientId = row.getKey();
+            }
+        }
+        return clientId;
     }
 }

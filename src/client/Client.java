@@ -3,7 +3,9 @@ package client;
 import remoteobj.PubSubService;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 
 /**
  * Created by balan016 on 2/8/18.
@@ -35,11 +37,8 @@ public class Client {
                 udpSubscriptionReceiver.start();
                 serverAssignedId = pubSubService.join(InetAddress.getLocalHost(), udpListenerPort);
                 if(serverAssignedId != -1){
-                    System.out.println("Joined Group server. Id is "+serverAssignedId);
-                    System.out.println("Client listening on port "+udpListenerPort);
-                    //pubSubService.ping(serverAssignedId);
-                    pubSubService.subscribe(";Someone;;", serverAssignedId);
-                    pubSubService.publish("Science;Someone;UMN;contents");
+                    System.out.println("CLIENT"+serverAssignedId+": Joined Group server. Id is "+serverAssignedId);
+                    System.out.println("CLIENT"+serverAssignedId+": Listening on port "+udpListenerPort);
                 }
                 else {
                     System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
@@ -54,7 +53,7 @@ public class Client {
             }
         }
         else {
-            System.out.println("Client is already connected to group server. Id is "+serverAssignedId);
+            System.out.println("CLIENT"+serverAssignedId+": Client is already connected to group server");
         }
     }
 
@@ -66,10 +65,38 @@ public class Client {
             try {
                 udpSubscriptionReceiver.closeSocket();
                 pubSubService.leave(InetAddress.getLocalHost(), udpListenerPort);
-                System.out.println("Client has successfully disconnected");
+                System.out.println("CLIENT"+serverAssignedId+": Client has successfully disconnected");
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void publish(String article) {
+        if(serverAssignedId!=-1){
+            System.out.println("CLIENT"+serverAssignedId+": Publishing "+article);
+            try {
+                pubSubService.publish(article, InetAddress.getLocalHost(), udpListenerPort);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("ERROR: Client must join group server before publishing");
+        }
+    }
+
+    public void subscribe (String articleString) {
+        if(serverAssignedId!=-1){
+            System.out.println("CLIENT"+serverAssignedId+": Subscribing "+articleString);
+            try {
+                pubSubService.subscribe(articleString, InetAddress.getLocalHost(), udpListenerPort);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("ERROR: Client must join group server before subscribing");
         }
     }
 }
