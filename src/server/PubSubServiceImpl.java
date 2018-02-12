@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,13 +17,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by balan016 on 2/8/18.
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
-    private int MAXCLIENT = 1;
+    private int MAXCLIENT = 10;
 
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
-    private static ConcurrentHashMap<Integer,Pair<InetAddress,Integer>> clientPortMap= new ConcurrentHashMap<>(); //TODO: also include IP in the map
-    private static ConcurrentHashMap<String,List<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer,Pair<InetAddress,Integer>> clientPortMap= new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,Set<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,Set<Integer>> personSubscribersMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,Set<Integer>> placeSubscriberMap = new ConcurrentHashMap<>();
     public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
 
     public PubSubServiceImpl() throws RemoteException {
@@ -82,7 +84,14 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public int publish(String article) throws RemoteException {
         String[] fields = article.trim().split(";");
-        List<Integer> clients = tagSubscribersMap.get(fields[0]);
+        //TODO: Make set
+        Set<Integer> clients = new HashSet<>();
+        if(fields[0].trim() != "" && tagSubscribersMap.get(fields[0]) != null)
+            clients.addAll(tagSubscribersMap.get(fields[0]));
+        if(fields[1].trim() != "" && personSubscribersMap.get(fields[1]) != null)
+            clients.addAll(personSubscribersMap.get(fields[1]));
+        if(fields[2].trim() != "" && placeSubscriberMap.get(fields[2]) != null)
+            clients.addAll(placeSubscriberMap.get(fields[2]));
         try{
             for(int client : clients){
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), clientPortMap.get(client).getKey(), clientPortMap.get(client).getValue());
@@ -96,11 +105,28 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         return 0;
     }
 
-    public int subscribe(String category, int clientId) throws RemoteException {
-        if(!tagSubscribersMap.containsKey(category)){
-            tagSubscribersMap.put(category,new ArrayList<>());
+    public int subscribe(String article, int clientId) throws RemoteException {
+        String fields[] = article.trim().split(";");
+        for(int i = 0; i < fields.length; i++){
+            if(fields[i].trim() != "" && i == 0) {
+                if(!tagSubscribersMap.containsKey(fields[0])){
+                    tagSubscribersMap.put(fields[0],new HashSet<>());
+                }
+                tagSubscribersMap.get(fields[0]).add(clientId);
+            }
+            if(fields[i].trim() != "" && i == 1) {
+                if(!personSubscribersMap.containsKey(fields[1])){
+                    personSubscribersMap.put(fields[1],new HashSet<>());
+                }
+                personSubscribersMap.get(fields[1]).add(clientId);
+            }
+            if(fields[i].trim() != "" && i == 2) {
+                if(!placeSubscriberMap.containsKey(fields[2])){
+                    placeSubscriberMap.put(fields[2],new HashSet<>());
+                }
+                placeSubscriberMap.get(fields[2]).add(clientId);
+            }
         }
-        tagSubscribersMap.get(category).add(clientId);
         return 0;
     }
 }
