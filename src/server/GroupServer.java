@@ -10,6 +10,9 @@ public class GroupServer {
         try {
             Naming.rebind("PubSubService",new PubSubServiceImpl());
             System.out.println("Remote Object bound and ready for use");
+            RegistryServerConnector registryServerConnector = new RegistryServerConnector();
+            registryServerConnector.registerGroupServer();
+            registryServerConnector.communicate();
         } catch (Exception e){
             e.printStackTrace();
         }
