@@ -38,7 +38,7 @@ public class Client {
                     System.out.println("Joined Group server. Id is "+serverAssignedId);
                     System.out.println("Client listening on port "+udpListenerPort);
                     //pubSubService.ping(serverAssignedId);
-                    pubSubService.subscribe("Science", serverAssignedId);
+                    pubSubService.subscribe(";Someone;;", serverAssignedId);
                     pubSubService.publish("Science;Someone;UMN;contents");
                 }
                 else {
