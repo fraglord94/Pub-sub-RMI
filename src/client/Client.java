@@ -99,4 +99,9 @@ public class Client {
             System.out.println("ERROR: Client must join group server before subscribing");
         }
     }
+
+    public void heartBeatPing(){
+
+    }
+
 }
