@@ -38,7 +38,7 @@ public class UdpSubscriptionReceiver extends Thread {
         try {
             while(running == true) {
                 datagramSocket.receive(datagramPacket);
-                System.out.println("UDP RECEIVE from client" + client.getClientId() + " on port " + datagramPacket.getPort() + " : " +new String(datagramPacket.getData(),0,datagramPacket.getLength()));
+                System.out.println("UDP RECEIVE from CLIENT " + client.getClientId() +  " : " +new String(datagramPacket.getData(),0,datagramPacket.getLength()));
                 //TODO: Extract contents and write to a file maybe
             }
         } catch (Exception e) {

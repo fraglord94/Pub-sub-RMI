@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
     private int MAXCLIENT = 10;
-
+    private int NUM_QUEUES = 10;
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
@@ -24,6 +24,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private static ConcurrentHashMap<String,Set<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String,Set<Integer>> personSubscribersMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String,Set<Integer>> placeSubscriberMap = new ConcurrentHashMap<>();
+    //TODO: Add multiple queues or an array of queues.
     public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
 
     public PubSubServiceImpl() throws RemoteException {
@@ -56,6 +57,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     public void leave(InetAddress ip, int port) throws RemoteException{
         int leavingClientId = findClientId(ip,port);
         if(leavingClientId!=-1){
+            unsubscribeAll(leavingClientId);
             availableIdQueue.offer(leavingClientId);
         }
     }
@@ -154,5 +156,24 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
             }
         }
         return clientId;
+    }
+
+    private int unsubscribeAll(int clientId){
+        for(String tag : tagSubscribersMap.keySet()){
+            if(tagSubscribersMap.get(tag).contains(clientId)){
+                tagSubscribersMap.get(tag).remove(clientId);
+            }
+        }
+        for(String person : personSubscribersMap.keySet()){
+            if(personSubscribersMap.get(person).contains(clientId)){
+                personSubscribersMap.get(person).remove(clientId);
+            }
+        }
+        for(String place : placeSubscriberMap.keySet()){
+            if(placeSubscriberMap.get(place).contains(clientId)){
+                placeSubscriberMap.get(place).remove(clientId);
+            }
+        }
+        return 0;
     }
 }
