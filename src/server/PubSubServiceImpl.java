@@ -187,7 +187,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
                 throw new InvalidInputStringException("The subscribe string contains a Content field. ");
         } catch (InvalidInputStringException e) {
             valid = false;
-            LOGGER.log(Level.SEVERE, "The client failed to publish due to: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "The client failed to subscribe due to: " + e.getMessage());
         }
         return valid;
     }
