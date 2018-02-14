@@ -36,7 +36,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAX_CLIENT];
-    private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAX_CLIENT);
+    private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<>(MAX_CLIENT);
 
     public PubSubServiceImpl() throws RemoteException {
         super();
@@ -89,7 +89,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public void publish(String article, InetAddress ip, int port) throws RemoteException {
         if (!validatePublishString(article))
-            System.out.println("ERROR while validating. ");
+            System.out.println("ERROR while validating publish string. ");
         String[] fields = article.trim().split(";");
         //TODO: Make set
         Set<Integer> clients = new HashSet<>();
@@ -111,22 +111,24 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     }
 
     public int subscribe(String article, InetAddress ip, int port) throws RemoteException {
+        if (!validateSubscribeString(article))
+            System.out.println("ERROR while validating subscribe string. ");
         int clientId = findClientId(ip, port);
         String fields[] = article.trim().split(";");
         for (int i = 0; i < fields.length; i++) {
-            if (fields[i].trim() != "" && i == 0) {
+            if (!Objects.equals(fields[i].trim(), "") && i == 0) {
                 if (!tagSubscribersMap.containsKey(fields[0])) {
                     tagSubscribersMap.put(fields[0], new HashSet<>());
                 }
                 tagSubscribersMap.get(fields[0]).add(clientId);
             }
-            if (fields[i].trim() != "" && i == 1) {
+            if (!Objects.equals(fields[i].trim(), "") && i == 1) {
                 if (!personSubscribersMap.containsKey(fields[1])) {
                     personSubscribersMap.put(fields[1], new HashSet<>());
                 }
                 personSubscribersMap.get(fields[1]).add(clientId);
             }
-            if (fields[i].trim() != "" && i == 2) {
+            if (!Objects.equals(fields[i].trim(), "") && i == 2) {
                 if (!placeSubscriberMap.containsKey(fields[2])) {
                     placeSubscriberMap.put(fields[2], new HashSet<>());
                 }
@@ -152,27 +154,41 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         try {
             //TODO - is this correct ?
             if (category.getBytes().length >= MAX_STRING_LENGTH)
-                throw new InvalidInputStringException("Publish String is of invalid size");
+                throw new InvalidInputStringException("Publish String is of invalid size. ");
             String[] array = category.split(";");
             if (array.length <= 1)
-                throw new InvalidInputStringException("Publish String does not have enough contents");
+                throw new InvalidInputStringException("Publish String does not have enough contents. ");
             try {
                 if (array[array.length - 1] == null || array[array.length - 1].length() == 0)
-                    throw new InvalidInputStringException("The contents field is null or empty");
+                    throw new InvalidInputStringException("The contents field is null or empty. ");
             } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
-                throw new InvalidInputStringException("The contents field is null or empty");
+                throw new InvalidInputStringException("The contents field is null or empty. ");
             }
             if (array[0] == null || array[0].length() == 0)
-                throw new InvalidInputStringException("The topic field is empty");
+                throw new InvalidInputStringException("The topic field is empty. ");
         } catch (InvalidInputStringException e) {
             valid = false;
             LOGGER.log(Level.SEVERE, "The client failed to publish due to: " + e.getMessage());
         }
         return valid;
-
     }
 
-    private void validateSubuscribeString(String category) {
-
+    private boolean validateSubscribeString(String category) {
+        boolean valid = true;
+        LOGGER.info("Beginning to validate the string. ");
+        try {
+            //TODO - is this correct ?
+            if (category.getBytes().length >= MAX_STRING_LENGTH)
+                throw new InvalidInputStringException("Subscribe String is of invalid size. ");
+            String[] array = category.split(";");
+            if (array[0] == null || array[0].length() == 0)
+                throw new InvalidInputStringException("The subscribe field should have one of the first three fields filled. ");
+            if (array.length > 3)
+                throw new InvalidInputStringException("The subscribe string contains a Content field. ");
+        } catch (InvalidInputStringException e) {
+            valid = false;
+            LOGGER.log(Level.SEVERE, "The client failed to publish due to: " + e.getMessage());
+        }
+        return valid;
     }
 }
