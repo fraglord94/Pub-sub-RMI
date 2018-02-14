@@ -17,3 +17,6 @@
 *.zip
 *.tar.gz
 *.rar
+
+#xml files
+*.xml

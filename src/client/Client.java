@@ -100,7 +100,11 @@ public class Client {
         }
     }
 
-    public void heartBeatPing(){
+    public void unsubscribe(){
+
+    }
+
+    public void ping(){
 
     }
 
