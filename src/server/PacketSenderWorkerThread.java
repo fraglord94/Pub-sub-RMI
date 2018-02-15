@@ -1,10 +1,10 @@
 package server;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-public class WorkerThread implements Runnable{
+public class PacketSenderWorkerThread implements Runnable{
     public int id;
     private DatagramSocket socket;
-    public WorkerThread(int id){
+    public PacketSenderWorkerThread(int id){
         this.id = id;
     }
     public void run() {
