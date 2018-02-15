@@ -1,4 +1,4 @@
-package server;
+package server.multipleQueues;
 
 import javafx.util.Pair;
 import remoteobj.PubSubService;
@@ -14,9 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by balan016 on 2/8/18.
  */
-public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
+public class PubSubServiceImplMultiQ extends UnicastRemoteObject implements PubSubService {
     private int MAXCLIENT = 10;
-    private int NUM_QUEUES = 10;
+    public static int NUM_QUEUES = 10;
+    public static int ROUND_ROBIN = 0;
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
@@ -27,12 +28,11 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private final String[] valid = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science",
             "Politics", "Health", ""};
 
-    //TODO: Add multiple queues or an array of queues. Implemented in multipleQueues package.
-    public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
+    public static ArrayBlockingQueue<DatagramPacket>[] sendQueue = new ArrayBlockingQueue[NUM_QUEUES];
 
-    public PubSubServiceImpl() throws RemoteException {
+    public PubSubServiceImplMultiQ() throws RemoteException {
         super();
-        SenderThreadExecutorService senderThreadExecutorService = new SenderThreadExecutorService();
+        SenderThreadExecutorServiceMultiQ senderThreadExecutorService = new SenderThreadExecutorServiceMultiQ();
         senderThreadExecutorService.start();
         for(int i=0;i<MAXCLIENT;i++){
             availableIdQueue.offer(i);
@@ -65,8 +65,19 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public boolean ping() throws RemoteException{
-        return true;
+    public void ping(int clientId) throws RemoteException{
+        System.out.println("Ping request from "+clientId);
+        try {
+            String message = "Hello dear client";
+            datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), clientPortMap.get(clientId).getKey(), clientPortMap.get(clientId).getValue());
+            System.out.println("Sending packet to "+clientPortMap.get(clientId).getKey().toString()+" & Port:"+clientPortMap.get(clientId).getValue());
+            datagramSocket.send(datagramPackets[clientId]);
+            System.out.println("Packet sent to "+clientId);
+        } catch (UnknownHostException e) {
+            System.out.println("ERROR: Host name not valid");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public int publish(String article, InetAddress ip, int port) throws RemoteException {
@@ -85,7 +96,10 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
             for(int client : clients){
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), clientPortMap.get(client).getKey(), clientPortMap.get(client).getValue());
                 System.out.println("Added packet "+ packet.toString() +" to queue");
-                sendQueue.offer(packet);
+                if(sendQueue[ROUND_ROBIN % NUM_QUEUES] == null){
+                    sendQueue[ROUND_ROBIN % NUM_QUEUES] = new ArrayBlockingQueue<DatagramPacket>(10);
+                }
+                sendQueue[ROUND_ROBIN++ % NUM_QUEUES].offer(packet);
             }
         }
         catch (Exception e){
