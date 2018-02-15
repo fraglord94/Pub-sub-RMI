@@ -9,12 +9,13 @@ public class ClientSimulator {
         Client b = new Client();
         a.joinGroupServer();
         a.subscribe(";;UMN;");
-        a.subscribe(";Someone;;");
+        a.subscribe("; ; ;");
         a.subscribe("Science;;;");
-        a.publish("Science;Someone;UMN;contents");
+        a.publish(";;;contents");
+        a.unsubscribe("Sciencee;;;");
         b.joinGroupServer();
         b.publish("Science;Someone;UMN;contents");
-        a.leaveGroupServer();
+        //a.leaveGroupServer();
         //a.leaveGroupServer();
         //b.joinGroupServer();
         //a.joinGroupServer();
