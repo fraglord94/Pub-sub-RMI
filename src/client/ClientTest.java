@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Random;
 
 public final class ClientTest {
-    private static final int TOTAL_CLIENTS = 10;
+    private static final int TOTAL_CLIENTS = 5;
 
-    private static final List<String> articleList = new ArrayList<>();
+    private static final List<String> articleList = new ArrayList<>(TOTAL_CLIENTS);
 
     private static final List<Client> clientList = new ArrayList<>(TOTAL_CLIENTS);
 
