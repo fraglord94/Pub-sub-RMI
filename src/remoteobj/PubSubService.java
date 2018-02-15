@@ -13,5 +13,5 @@ public interface PubSubService extends Remote{
     public void ping(int clientId) throws RemoteException; //TODO: how will ping return success - UDP?
     public void publish(String article, InetAddress ip, int port) throws RemoteException;
     public int subscribe(String category, InetAddress ip, int port) throws RemoteException;
-    //TODO: unsubscribe()
+    public int unsubscribe(String category, InetAddress ip, int port) throws RemoteException;
 }
