@@ -27,7 +27,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private final String[] valid = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science",
             "Politics", "Health", ""};
 
-    //TODO: Add multiple queues or an array of queues.
+    //TODO: Add multiple queues or an array of queues. Implemented in multipleQueues package.
     public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
 
     public PubSubServiceImpl() throws RemoteException {
