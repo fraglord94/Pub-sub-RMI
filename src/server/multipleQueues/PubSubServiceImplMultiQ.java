@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by balan016 on 2/8/18.
  */
-public class PubSubServiceImplMultiQ extends UnicastRemoteObject implements PubSubService {
+public class PubSubServiceImplMultiQ extends UnicastRemoteObject {
     private int MAXCLIENT = 10;
     public static int NUM_QUEUES = 10;
     public static int ROUND_ROBIN = 0;
