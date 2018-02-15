@@ -24,6 +24,9 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private static ConcurrentHashMap<String,Set<Integer>> tagSubscribersMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String,Set<Integer>> personSubscribersMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String,Set<Integer>> placeSubscriberMap = new ConcurrentHashMap<>();
+    private final String[] valid = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science",
+            "Politics", "Health", ""};
+
     //TODO: Add multiple queues or an array of queues.
     public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
 
@@ -66,9 +69,11 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         return true;
     }
 
-    public void publish(String article, InetAddress ip, int port) throws RemoteException {
+    public int publish(String article, InetAddress ip, int port) throws RemoteException {
+        if(!validatePublishString(article)){
+            return -1;
+        }
         String[] fields = article.trim().split(";");
-        //TODO: Make set
         Set<Integer> clients = new HashSet<>();
         if(fields[0].trim() != "" && tagSubscribersMap.get(fields[0]) != null)
             clients.addAll(tagSubscribersMap.get(fields[0]));
@@ -86,10 +91,14 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         catch (Exception e){
             System.out.println(e.getMessage());
         }
+        return 1;
     }
 
     public int subscribe(String article, InetAddress ip, int port) throws RemoteException {
         int clientId = findClientId(ip, port);
+        if(!validateSubscribeString(article)){
+            return -1;
+        }
         String fields[] = article.trim().split(";");
         for(int i = 0; i < fields.length; i++){
             if(fields[i].trim().length() != 0 && i == 0) {
@@ -116,6 +125,9 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
 
     public int unsubscribe(String article, InetAddress ip, int port){
         int clientId = findClientId(ip, port);
+        if(!validateSubscribeString(article)){
+            return -1;
+        }
         String fields[] = article.trim().split(";");
         for(int i = 0; i < fields.length; i++){
             if(fields[i].trim().length() != 0 && i == 0) {
@@ -164,5 +176,56 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
             }
         }
         return 0;
+    }
+
+    private boolean validatePublishString(String article) {
+        Set<String> validCategories = new HashSet<String>(Arrays.asList(valid));
+        String[] fields = article.split(";");
+        if(!validCategories.contains(fields[0].trim())){
+            return false;
+        }
+        if(fields.length == 4){
+            //If contents field is blank
+            if(fields[3].trim().length() == 0){
+                return false;
+            }
+            //If all of the other 3 fields are blank
+            if(fields[0].trim().length() + fields[1].trim().length() + fields[2].trim().length() == 0){
+                return false;
+            }
+        }
+        else
+            return false;
+        return true;
+    }
+
+    private boolean validateSubscribeString(String article) {
+        Set<String> validCategories = new HashSet<String>(Arrays.asList(valid));
+        String[] fields = article.split(";");
+        if(fields.length > 0){
+            //If not from given category
+            if(!validCategories.contains(fields[0].trim())){
+                return false;
+            }
+            if(fields.length > 3){
+                //If the content field is non blank
+                if(fields[3].trim().length() != 0){
+                    return false;
+                }
+            }
+            else{
+                int lenCount = 0;
+                //If all the first three fields are blank
+                for(String field : fields){
+                    lenCount += field.trim().length();
+                }
+                if(lenCount == 0)
+                    return false;
+            }
+        }
+        else{
+            return false;
+        }
+        return true;
     }
 }

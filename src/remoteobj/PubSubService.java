@@ -10,8 +10,8 @@ import java.rmi.RemoteException;
 public interface PubSubService extends Remote{
     public int join(InetAddress ip, int port) throws RemoteException;
     public void leave(InetAddress ip, int port) throws RemoteException;
-    public boolean ping() throws RemoteException;
-    public void publish(String article, InetAddress ip, int port) throws RemoteException;
+    public boolean ping(int clientId) throws RemoteException;
+    public int publish(String article, InetAddress ip, int port) throws RemoteException;
     public int subscribe(String category, InetAddress ip, int port) throws RemoteException;
     public int unsubscribe(String category, InetAddress ip, int port) throws RemoteException;
 }
