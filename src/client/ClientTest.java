@@ -30,6 +30,8 @@ public final class ClientTest {
     }
 
     public void driver() throws NoSuchFieldException, IllegalAccessException {
+        initializeClients();
+        initializeArticleSet();
         for (int i = 0; i < TOTAL_CLIENTS; i++) {
             int randomIndex = random.nextInt(TOTAL_CLIENTS);
             String article = articleList.get(randomIndex);
