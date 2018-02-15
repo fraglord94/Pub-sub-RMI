@@ -12,9 +12,13 @@ public class PacketSenderWorkerThread implements Runnable{
         try {
             socket = new DatagramSocket();
             while(true){
-                packet = PubSubServiceImpl.sendQueue.take();
-                System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
-                socket.send(packet);
+                synchronized (PubSubServiceImpl.sendQueue){
+                    if(PubSubServiceImpl.sendQueue[id] != null){
+                        packet = PubSubServiceImpl.sendQueue[id].take();
+                        System.out.println("Sending message: " + packet.toString() + " to client " + packet.getPort());
+                        socket.send(packet);
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

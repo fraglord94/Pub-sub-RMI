@@ -15,6 +15,7 @@ public class ClientSimulator {
         a.unsubscribe("Sciencee;;;");
         b.joinGroupServer();
         b.publish("Science;Someone;UMN;contents");
+        b.publish("Science;Someone;UMN;contents");
         //a.leaveGroupServer();
         //a.leaveGroupServer();
         //b.joinGroupServer();

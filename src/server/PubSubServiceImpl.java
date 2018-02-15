@@ -16,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubService {
     private int MAXCLIENT = 10;
-    private int NUM_QUEUES = 10;
+    public static int NUM_QUEUES = 10;
+    public static int ROUND_ROBIN = 0;
     private DatagramSocket datagramSocket; //for UDP connection to client
     private DatagramPacket[] datagramPackets = new DatagramPacket[MAXCLIENT];
     private BlockingQueue<Integer> availableIdQueue = new ArrayBlockingQueue<Integer>(MAXCLIENT);
@@ -27,8 +28,7 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
     private final String[] valid = new String[]{"Sports", "Lifestyle", "Entertainment", "Business", "Technology", "Science",
             "Politics", "Health", ""};
 
-    //TODO: Add multiple queues or an array of queues.
-    public static BlockingQueue<DatagramPacket> sendQueue = new ArrayBlockingQueue<>(500);
+    public static ArrayBlockingQueue<DatagramPacket>[] sendQueue = new ArrayBlockingQueue[NUM_QUEUES];
 
     public PubSubServiceImpl() throws RemoteException {
         super();
@@ -96,7 +96,10 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
             for(int client : clients){
                 DatagramPacket packet = new DatagramPacket(article.getBytes(),article.length(), clientPortMap.get(client).getKey(), clientPortMap.get(client).getValue());
                 System.out.println("Added packet "+ packet.toString() +" to queue");
-                sendQueue.offer(packet);
+                if(sendQueue[ROUND_ROBIN % NUM_QUEUES] == null){
+                    sendQueue[ROUND_ROBIN % NUM_QUEUES] = new ArrayBlockingQueue<DatagramPacket>(10);
+                }
+                sendQueue[ROUND_ROBIN++ % NUM_QUEUES].offer(packet);
             }
         }
         catch (Exception e){
