@@ -65,19 +65,8 @@ public class PubSubServiceImpl extends UnicastRemoteObject implements PubSubServ
         }
     }
 
-    public void ping(int clientId) throws RemoteException{
-        System.out.println("Ping request from "+clientId);
-        try {
-            String message = "Hello dear client";
-            datagramPackets[clientId] = new DatagramPacket(message.getBytes(),message.length(), clientPortMap.get(clientId).getKey(), clientPortMap.get(clientId).getValue());
-            System.out.println("Sending packet to "+clientPortMap.get(clientId).getKey().toString()+" & Port:"+clientPortMap.get(clientId).getValue());
-            datagramSocket.send(datagramPackets[clientId]);
-            System.out.println("Packet sent to "+clientId);
-        } catch (UnknownHostException e) {
-            System.out.println("ERROR: Host name not valid");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public boolean ping() throws RemoteException{
+        return true;
     }
 
     public int publish(String article, InetAddress ip, int port) throws RemoteException {

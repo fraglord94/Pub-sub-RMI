@@ -15,12 +15,14 @@ public class Client {
     private PubSubService pubSubService;
     private UdpSubscriptionReceiver udpSubscriptionReceiver;
     private int udpListenerPort;
+    private ServerPinger serverPinger;
+    private String remoteURL = "//localhost/PubSubService";
 
     public Client(){
         serverAssignedId = -1;
         udpListenerPort = -1;
         try {
-            pubSubService = (PubSubService) Naming.lookup("//localhost/PubSubService");
+            pubSubService = (PubSubService) Naming.lookup(remoteURL);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,6 +45,8 @@ public class Client {
                 if(serverAssignedId != -1){
                     System.out.println("CLIENT"+serverAssignedId+": Joined Group server. Id is "+serverAssignedId);
                     System.out.println("CLIENT"+serverAssignedId+": Listening on port "+udpListenerPort);
+                    serverPinger = new ServerPinger(this,udpSubscriptionReceiver);
+                    serverPinger.start();
                 }
                 else {
                     System.out.println("ERROR: Join unsuccessful. Maximum number of clients connected");
@@ -119,5 +123,9 @@ public class Client {
         else {
             System.out.println("ERROR: Client must join group server before subscribing");
         }
+    }
+
+    public void pingServer() throws Exception {
+        pubSubService.ping();
     }
 }
