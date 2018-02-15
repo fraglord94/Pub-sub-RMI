@@ -80,7 +80,8 @@ public class Client {
         if(serverAssignedId!=-1){
             System.out.println("CLIENT "+serverAssignedId+": Publishing "+article);
             try {
-                pubSubService.publish(article, InetAddress.getLocalHost(), udpListenerPort);
+                if(pubSubService.publish(article, InetAddress.getLocalHost(), udpListenerPort) == -1)
+                    System.out.println("Invalid publish article");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -94,7 +95,8 @@ public class Client {
         if(serverAssignedId!=-1){
             System.out.println("CLIENT "+serverAssignedId+": Subscribing "+articleString);
             try {
-                pubSubService.subscribe(articleString, InetAddress.getLocalHost(), udpListenerPort);
+                if(pubSubService.subscribe(articleString, InetAddress.getLocalHost(), udpListenerPort) == -1)
+                    System.out.println("Invalid subscribe article");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -108,7 +110,8 @@ public class Client {
         if(serverAssignedId!=-1){
             System.out.println("CLIENT "+serverAssignedId+": Unsubscribing "+articleString);
             try {
-                pubSubService.unsubscribe(articleString, InetAddress.getLocalHost(), udpListenerPort);
+                if(pubSubService.unsubscribe(articleString, InetAddress.getLocalHost(), udpListenerPort) == -1)
+                    System.out.println("Invalid unsubscribe article");;
             } catch (Exception e) {
                 e.printStackTrace();
             }
